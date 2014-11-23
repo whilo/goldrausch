@@ -82,7 +82,7 @@
         (let [output (<!! out)]
           (go-loop [status (<! (:status-ch output))]
             (when status
-              (debug "Twitter status:" status)
+              (debug "Twitter status:" (:text status))
               (try
                 (transact-tweet (:conn db) status)
                 (catch Exception e

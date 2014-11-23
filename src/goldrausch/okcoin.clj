@@ -219,8 +219,8 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
         (go-loop [ticks (<! in)]
           (when ticks
             (try
-              (debug "transacting ticks" #_ticks)
-              (d/transact conn (mapcat tick->trans ticks))
+              (debug "transacting ticks" (get (first ticks) "channel"))
+              (d/transact-async conn (mapcat tick->trans ticks))
               (catch Exception e
                 (error "transaction error: " e)))
             (recur (<! in))))

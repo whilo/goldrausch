@@ -160,8 +160,7 @@
                 (timeout 2000)
                 (do
                   (doseq [c subscribed-chans]
-                    (async/thread
-                      (d/transact conn ((supported-chans c)))))
+                    (d/transact-async conn ((supported-chans c))))
                   (recur))))
         (assoc component :close-ch close-ch))))
   (stop [component]

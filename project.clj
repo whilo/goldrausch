@@ -22,4 +22,5 @@
                  [http.async.client "0.5.2"]
                  [org.clojure/data.json "0.2.5"]]
 
-  :main goldrausch.core)
+  :main goldrausch.core
+  :jvm-opts ["-Dcom.sun.management.jmxremote.port=9001"])

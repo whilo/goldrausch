@@ -1,5 +1,5 @@
 #!/bin/bash
 # start datomic
-/opt/datomic/bin/transactor /opt/tweets.properties &
+/opt/datomic/bin/transactor -Xmx4g -Xms4g /opt/tweets.properties &
 # start lesezeichen
 cd /opt/goldrausch; lein run /opt/config.edn

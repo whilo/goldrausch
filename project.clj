@@ -23,4 +23,6 @@
                  [org.clojure/data.json "0.2.5"]]
 
   :main goldrausch.core
-  :jvm-opts ["-Dcom.sun.management.jmxremote.port=9001"])
+  :jvm-opts ["-Dcom.sun.management.jmxremote.port=9001"
+             "-Dcom.sun.management.jmxremote.authenticate=false"
+             "-Dcom.sun.management.jmxremote.ssl=false"])

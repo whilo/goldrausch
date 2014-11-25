@@ -154,13 +154,16 @@
           (d/transact conn schema))
 
         (go-loop []
-          (debug "querying bitfinex")
+          (debug "polling bitfinex")
           (alt! close-ch
                 :done
                 (timeout 2000)
                 (do
                   (doseq [c subscribed-chans]
-                    (d/transact-async conn ((supported-chans c))))
+                    (try
+                      (d/transact-async conn ((supported-chans c)))
+                      (catch Exception e
+                        (debug "transaction failed: " c e))))
                   (recur))))
         (assoc component :close-ch close-ch))))
   (stop [component]

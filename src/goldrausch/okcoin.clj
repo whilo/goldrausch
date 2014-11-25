@@ -76,7 +76,8 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
                                   (async/close! close-ch)))
           (init-fn [in out])
           (catch Exception e
-            (error "cannot setup websocket: " e)))
+            (error "cannot setup websocket: " e)
+            (async/close! close-ch)))
         (<! (timeout 60000))
         (when-not (= (<! close-ch) :shutdown)
           (debug "reconnecting.")

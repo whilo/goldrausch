@@ -47,7 +47,7 @@
   "Transact tweet to datomic"
   [conn {:keys [id user created_at text]}]
   (let [ts (c/to-date (f/parse twitter-date-formatter created_at))]
-    (d/transact
+    (d/transact-async
      conn
      [{:db/id (d/tempid :db.part/user)
        :tweet/text text

@@ -30,7 +30,7 @@
               (reset! cache [])
               (d/transact (:conn db) txs)
               (catch Exception e
-                (error "Transactions failed: " e txs))))
+                (error "Transactions failed: " e))))
           (<! (async/timeout (* timeout 1000)))
           (when @cache
             (recur)))

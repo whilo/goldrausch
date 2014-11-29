@@ -6,7 +6,8 @@
             [clj-time.coerce :as c]
             [datomic.api :as d]
             [clojure.core.async :refer [go go-loop <! >! <!! >!!]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [goldrausch.aggregator :refer [prepare-trans!]]))
 
 (timbre/refer-timbre)
 
@@ -43,17 +44,15 @@
 
 (def twitter-date-formatter (f/formatter "E MMM dd HH:mm:ss Z YYYY"))
 
-(defn transact-tweet
-  "Transact tweet to datomic"
-  [conn {:keys [id user created_at text]}]
+(defn tweet->trans
+  "Tweet to transactions."
+  [{:keys [id user created_at text]}]
   (let [ts (c/to-date (f/parse twitter-date-formatter created_at))]
-    (d/transact-async
-     conn
-     [{:db/id (d/tempid :db.part/user)
-       :tweet/text text
-       :tweet/id id
-       :publish/at ts
-       :tweet/user (:id user)}])))
+    [{:db/id (d/tempid :db.part/user)
+      :tweet/text text
+      :tweet/id id
+      :publish/at ts
+      :tweet/user (:id user)}]))
 
 ;; TODO not necessary for component...
 (defn get-all-tweets
@@ -68,7 +67,7 @@
           [?t :publish/at ?ts]]
         (d/db conn))))
 
-(defrecord TwitterCollector [follow track credentials init-schema?]
+(defrecord TwitterCollector [follow track credentials aggregator init-schema?]
   component/Lifecycle
   (start [component]
     (if (:in component) ;; make idempotent
@@ -84,7 +83,8 @@
             (when status
               (debug "Twitter status:" (:text status))
               (try
-                (transact-tweet (:conn db) status)
+                #_(d/transact (:conn db) (tweet->trans status))
+                (prepare-trans! aggregator (tweet->trans status))
                 (catch Exception e
                   (error "transaction error: " status e)))
               (recur (<! (:status-ch output))))))

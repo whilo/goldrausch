@@ -7,9 +7,17 @@
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
             [http.async.client :as cli]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [goldrausch.aggregator :refer [prepare-trans!]]))
 
 (timbre/refer-timbre)
+
+
+;; double reconnection problem:
+;; 2014-Nov-25 08:52:44 +0000 47e0b42a8250 DEBUG [goldrausch.okcoin] - reconnecting.
+;; 2014-Nov-25 08:53:46 +0000 47e0b42a8250 DEBUG [goldrausch.okcoin] - reconnecting.
+;; 2014-Nov-26 11:06:07 +0000 47e0b42a8250 DEBUG [goldrausch.okcoin] - reconnecting.
+;; 2014-Nov-26 11:07:12 +0000 47e0b42a8250 DEBUG [goldrausch.okcoin] - reconnecting.
 
 ;; possible sources
 
@@ -203,7 +211,7 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
     "ok_btcusd_depth60" (btcusd-depth60->trans tick)
     (info "OKCoin tick unknown:" tick)))
 
-(defrecord OKCoinCollector [websocket-endpoint subscribed-chans db init-schema?]
+(defrecord OKCoinCollector [websocket-endpoint subscribed-chans db aggregator init-schema?]
   component/Lifecycle
   (start [component]
     (if (:in component) ;; idempotent
@@ -221,7 +229,8 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
           (when ticks
             (try
               (debug "transacting ticks" (get (first ticks) "channel"))
-              (d/transact-async conn (mapcat tick->trans ticks))
+              #_(d/transact-async conn (mapcat tick->trans ticks))
+              (prepare-trans! aggregator (mapcat tick->trans ticks))
               (catch Exception e
                 (error "transaction error: " e)))
             (recur (<! in))))

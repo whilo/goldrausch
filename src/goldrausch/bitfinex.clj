@@ -7,7 +7,8 @@
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
             [http.async.client :as cli]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [goldrausch.aggregator :refer [prepare-trans!]]))
 
 (timbre/refer-timbre)
 
@@ -142,7 +143,7 @@
                       "book/btcusd" book-btcusd})
 
 
-(defrecord BitfinexCollector [subscribed-chans db init-schema?]
+(defrecord BitfinexCollector [subscribed-chans db aggregator init-schema?]
   component/Lifecycle
   (start [component]
     (if (:close-ch component) ;; idempotent
@@ -161,9 +162,10 @@
                 (do
                   (doseq [c subscribed-chans]
                     (try
-                      (d/transact-async conn ((supported-chans c)))
+                      #_(d/transact-async conn ((supported-chans c)))
+                      (prepare-trans! aggregator ((supported-chans c)))
                       (catch Exception e
-                        (debug "transaction failed: " c e))))
+                        (debug "transaction failed: " c (.printStackTrace e)))))
                   (recur))))
         (assoc component :close-ch close-ch))))
   (stop [component]

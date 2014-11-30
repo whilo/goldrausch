@@ -7,8 +7,7 @@
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
             [http.async.client :as cli]
-            [taoensso.timbre :as timbre]
-            [goldrausch.aggregator :refer [prepare-trans!]]))
+            [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
@@ -28,50 +27,50 @@
               :db/ident :bitfinex-btcusd/mid
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/bid
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/ask
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/high
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/low
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/last-price
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/volume
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/provider
               :db/valueType :db.type/string
               :db/cardinality :db.cardinality/one
               :db/doc "Unique name of the coin data provider."
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
 
              ;; bitfinex-btcusd60
@@ -79,25 +78,25 @@
               :db/ident :bitfinex-btcusd/bids
               :db/valueType :db.type/ref
               :db/cardinality :db.cardinality/many
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/asks
               :db/valueType :db.type/ref
               :db/cardinality :db.cardinality/many
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/price
               :db/valueType :db.type/double
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :bitfinex-btcusd/amount
               :db/valueType :db.type/double
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}])
 
 (defn pubticker-btcusd []
@@ -143,7 +142,7 @@
                       "book/btcusd" book-btcusd})
 
 
-(defrecord BitfinexCollector [subscribed-chans db aggregator init-schema?]
+(defrecord BitfinexCollector [subscribed-chans db init-schema?]
   component/Lifecycle
   (start [component]
     (if (:close-ch component) ;; idempotent
@@ -162,8 +161,7 @@
                 (do
                   (doseq [c subscribed-chans]
                     (try
-                      #_(d/transact-async conn ((supported-chans c)))
-                      (prepare-trans! aggregator ((supported-chans c)))
+                      (d/transact conn ((supported-chans c)))
                       (catch Exception e
                         (debug "transaction failed: " c (.printStackTrace e)))))
                   (recur))))

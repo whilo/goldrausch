@@ -6,8 +6,7 @@
             [clj-time.coerce :as c]
             [datomic.api :as d]
             [clojure.core.async :refer [go go-loop <! >! <!! >!!]]
-            [taoensso.timbre :as timbre]
-            [goldrausch.aggregator :refer [prepare-trans!]]))
+            [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
@@ -23,8 +22,8 @@
               :db/ident :tweet/text
               :db/valueType :db.type/string
               :db/cardinality :db.cardinality/one
-              :db/fulltext true
-              :db/index true
+;              :db/fulltext true
+;              :db/index true
               :db/doc "A tweet's text"
               :db.install/_attribute :db.part/db}
 
@@ -67,7 +66,7 @@
           [?t :publish/at ?ts]]
         (d/db conn))))
 
-(defrecord TwitterCollector [follow track credentials aggregator init-schema?]
+(defrecord TwitterCollector [follow track credentials init-schema?]
   component/Lifecycle
   (start [component]
     (if (:in component) ;; make idempotent
@@ -83,8 +82,7 @@
             (when status
               (debug "Twitter status:" (:text status))
               (try
-                #_(d/transact (:conn db) (tweet->trans status))
-                (prepare-trans! aggregator (tweet->trans status))
+                (d/transact (:conn db) (tweet->trans status))
                 (catch Exception e
                   (error "transaction error: " status e)))
               (recur (<! (:status-ch output))))))

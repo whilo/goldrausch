@@ -7,8 +7,7 @@
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
             [http.async.client :as cli]
-            [taoensso.timbre :as timbre]
-            [goldrausch.aggregator :refer [prepare-trans!]]))
+            [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
 
@@ -103,37 +102,37 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
               :db/ident :okcoin-btcusd/buy
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/sell
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/high
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/low
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/last
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/vol
               :db/valueType :db.type/float
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/provider
@@ -148,31 +147,31 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
               :db/ident :okcoin-btcusd/bids
               :db/valueType :db.type/ref
               :db/cardinality :db.cardinality/many
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/asks
               :db/valueType :db.type/ref
               :db/cardinality :db.cardinality/many
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/bid
               :db/valueType :db.type/double
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/ask
               :db/valueType :db.type/double
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}
              {:db/id #db/id[:db.part/db]
               :db/ident :okcoin-btcusd/depth
               :db/valueType :db.type/double
               :db/cardinality :db.cardinality/one
-              :db/index true
+;              :db/index true
               :db.install/_attribute :db.part/db}])
 
 (defn btcusd-tick->trans [json-tick]
@@ -211,7 +210,7 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
     "ok_btcusd_depth60" (btcusd-depth60->trans tick)
     (info "OKCoin tick unknown:" tick)))
 
-(defrecord OKCoinCollector [websocket-endpoint subscribed-chans db aggregator init-schema?]
+(defrecord OKCoinCollector [websocket-endpoint subscribed-chans db init-schema?]
   component/Lifecycle
   (start [component]
     (if (:in component) ;; idempotent
@@ -229,8 +228,7 @@ protocol of url. init-fn is a function taking [in out] and doing setup after a
           (when ticks
             (try
               (debug "transacting ticks" (get (first ticks) "channel"))
-              #_(d/transact-async conn (mapcat tick->trans ticks))
-              (prepare-trans! aggregator (mapcat tick->trans ticks))
+              (d/transact conn (mapcat tick->trans ticks))
               (catch Exception e
                 (error "transaction error: " e)))
             (recur (<! in))))

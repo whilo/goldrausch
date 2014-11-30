@@ -3,7 +3,6 @@
   (:require [goldrausch.twitter :refer [new-twitter-collector get-all-tweets]]
             [goldrausch.okcoin :refer [new-okcoin-collector]]
             [goldrausch.bitfinex :refer [new-bitfinex-collector]]
-            [goldrausch.aggregator :refer [new-trans-aggregator]]
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
             [clojure.java.io :as io]
@@ -19,25 +18,21 @@
   (component/system-map
    :db (new-datomic-db (or (get-in config [:datomic :uri])
                            (str "datomic:mem://" (d/squuid))))
-   :aggregator
-   (component/using
-    (new-trans-aggregator (config :trans-aggregator))
-    {:db :db})
+
    :twitter-collector
    (component/using
     (new-twitter-collector (config :twitter))
-    {:db :db
-     :aggregator :aggregator})
+    {:db :db})
+
    :okcoin-collector
    (component/using
     (new-okcoin-collector (config :okcoin))
-    {:db :db
-     :aggregator :aggregator})
+    {:db :db})
+
    :bitfinex-collector
    (component/using
     (new-bitfinex-collector (config :bitfinex))
-    {:db :db
-     :aggregator :aggregator})))
+    {:db :db})))
 
 (defn -main [config-filename & args]
   (-> (slurp config-filename)

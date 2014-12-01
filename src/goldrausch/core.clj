@@ -1,7 +1,8 @@
 (ns goldrausch.core
   (:gen-class :main true)
   (:require [goldrausch.twitter :refer [new-twitter-collector get-all-tweets]]
-            [goldrausch.okcoin :refer [new-okcoin-collector]]
+            #_[goldrausch.okcoin :refer [new-okcoin-collector]]
+            [goldrausch.okcoin-rest :refer [new-okcoin-rest-collector]]
             [goldrausch.bitfinex :refer [new-bitfinex-collector]]
             [com.stuartsierra.component :as component]
             [datomic.api :as d]
@@ -24,9 +25,9 @@
     (new-twitter-collector (config :twitter))
     {:db :db})
 
-   :okcoin-collector
+   :okcoin-rest-collector
    (component/using
-    (new-okcoin-collector (config :okcoin))
+    (new-okcoin-rest-collector (config :okcoin))
     {:db :db})
 
    :bitfinex-collector
